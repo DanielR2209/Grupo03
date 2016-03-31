@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 
+
 \title{Configuração da Aplicação Web Livraria}
 \author{Grupo 3}
 \date{March 2016}
@@ -10,7 +11,7 @@
 \maketitle
 
 \section{Introdução}
-Este manual busca instruir o usuário a configurar o banco de dados e a aplicação.
+Este manual busca instruir o usuário a configurar o banco de dados e a aplicação, além de executar simulações de acesso e leitura de seus resultados.
 
 \section{Configurando o SSH}
 
@@ -35,7 +36,7 @@ Para isso, deve-se abrir o terminal na sua máquina e executar os seguintes coma
  ssh-keygen -t rsa
 \end{verbatim}
 
-Esse comando gera as chaves pública (id_rsa.pub) e privada (id_rsa) e salva-as na pasta ~/.ssh
+Esse comando gera as chaves pública (id_rsa.pub) e privada (id_rsa) e salva-as na pasta $ ~/.ssh$
 
 O comando vai pedir um nome de arquivo e uma senha/confirmação de senha. Deixe todos em branco.
 \begin{verbatim}
@@ -45,7 +46,7 @@ O comando vai pedir um nome de arquivo e uma senha/confirmação de senha. Deixe
 
 O programa pedirá a senha para logar na máquina cbn3. Neste caso, é o mesmo login e senha da rede do IC.
 
-Esse comando copia a chave publica para o arquivo authorized_keys na pasta .ssh.
+Esse comando copia a chave publica para o arquivo authorized_keys na pasta $.ssh$.
 
 Com isso, o acesso por SSH está configurado. Para logar na máquina cbn3 sem senha, basta executar no terminal:
 
@@ -68,8 +69,8 @@ Um novo usuário, chamado postgres, será criado e configurado como administrado
 \begin{verbatim}
  su -s /bin/bash postgres
 
- senha: postgres
 \end{verbatim}
+ senha: postgres
 Como usuário postgres, pode-se acessar o banco de dados com o comando:
 \begin{verbatim}
  psql -l 
@@ -83,16 +84,16 @@ A instalação do servidor cria um usuário $tomcat7$, para execução dos servi
 
 Para se configurar o servidor:
 
-Faça o download do PostgreSQL JDBC, em https://jdbc.postgresql.org/download.html, e adicione o conteudo à pasta $CATALINA_BASE/lib$.
+Faça o download do PostgreSQL JDBC, em https://jdbc.postgresql.org/download.html, e adicione o conteudo à pasta $CATALINA\_BASE/lib$.
 
-Abra o arquivo $CATALINA_BASE/conf/context.xml$ e copie a seguinte linha ao bloco Context:
+Abra o arquivo $CATALINA\_BASE/conf/context.xml$ e copie a seguinte linha ao bloco Context:
 \begin{verbatim}
   <ResourceLink type="javax.sql.DataSource" name="jdbc/TPCW" global="jdbc/TPCWPool"/>
 
 \end{verbatim}
 
 
-Abra o arquivo $CATALINA_BASE/conf/server.xml$ e adicione os seguintes linhas ao bloco GlobalNamingResources:
+Abra o arquivo $CATALINA\_BASE/conf/server.xml$ e adicione os seguintes linhas ao bloco GlobalNamingResources:
 
 \begin{verbatim}
      <Resource type="javax.sql.DataSource"
@@ -117,7 +118,7 @@ Reinicie o Tomcat com o seguinte comando:
 
 \section{Configurando o TPC-W}
 
-Para se ter permissão para criar aplicações na pasta $CATALINA_BASE/webapps$, onde estão as configurações do Tomcat, deve-se adicionar o usuário ao grupo $tomcat7$. Utilize o seguinte comando.
+Para se ter permissão para criar aplicações na pasta $CATALINA\_BASE/webapps$, onde estão as configurações do Tomcat, deve-se adicionar o usuário ao grupo $tomcat7$. Utilize o seguinte comando.
 
 \begin{verbatim}
   # adduser [usuário_comum] tomcat7
@@ -125,7 +126,57 @@ Para se ter permissão para criar aplicações na pasta $CATALINA_BASE/webapps$,
 
 Faça login novamente para que o novo grupo seja carregado.
 
+Com isso, a aplicação web já pode ser carregada, acessando-se
 
+$http://cbn3.lab.ic.unicamp.br:8080/tpcw/TPCW\_home\_interaction$
+
+em uma máquina da rede do IC.
+
+
+\section{Utilizando o Emulador de Navegadores RBE}
+
+Execute o comando a seguir para iniciar o emulador com um acesso. Se quiser executar mais acessos simultâneos, substitua o número 1, antes de $-ITEM$, pelo valor desejado.
+
+\begin{verbatim}
+    java -cp /nfs/rbe/rbe.jar rbe.RBE -EB rbe.EBTPCW1Factory 1 -CUST
+    10 -ITEM 1000 -OUT out.debug.m
+    -WWW http://cbn3.lab.ic.unicamp.br:8080/tpcw/
+    -RU 10 -MI 120 -RD 10 -DEBUG 10
+
+
+\end{verbatim}
+
+    Após o acesso, será gerado o arquivo de saída $out.debug.m$, com dados e estatísticas. Se quiser realizar outro test, apague este arquivo antes de executar o RBE novamente.
+
+    Para analisar o arquivo de saída gerado pelo RBE, execute:
+\begin{verbatim}
+    python /nfs/rbe/analyze.py out.m
+\end{verbatim}
+
+Com isso, os gráficos e dados serão extraídos do arquivo de saída.
+
+Para visualizar os gráficos, execute o comando:
+
+\begin{verbatim}
+    cat tpcw-run.plot
+\end{verbatim}
+
+Copie os resultados obtidos.
+
+Abra o programa $gnuplot$, com o comando:
+
+\begin{verbatim}
+    gnuplot
+\end{verbatim}
+
+Dentro do terminal do $gnuplot$, execute:
+
+\begin{verbatim}
+    set terminal dumb
+\end{verbatim}
+
+Com isso, a visualização dos gráficos será simplificada.
+
+Agora, cole o resultado copiado anteriormente no terminal do $gnuplot$ e execute. Os gráficos de estatísticas de acesso desejados serão disponibilizados na tela.
 
 \end{document}
-
