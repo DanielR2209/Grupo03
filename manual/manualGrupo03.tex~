@@ -1,0 +1,131 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{Configuração da Aplicação Web Livraria}
+\author{Grupo 3}
+\date{March 2016}
+
+\begin{document}
+
+\maketitle
+
+\section{Introdução}
+Este manual busca instruir o usuário a configurar o banco de dados e a aplicação.
+
+\section{Configurando o SSH}
+
+Para preparar o ambiente, é recomendável configurar o acesso à máquina do experimento por SSH.
+Na máquina de onde SSH vai ser executado, deve-se editar o arquivo ~/.ssh/config, e adicionar as seguintes linhas.
+\begin{verbatim}
+  
+Host ncbn3
+HostName cbn3.lab.ic.unicamp.br
+User raXXXYYY
+
+\end{verbatim}
+
+onde XXXYYY é o numero do RA.
+
+Geração de Chaves:
+
+Para acessar a máquina cbn3 do cluster sem o uso de senhas, deve-se gerar um par de chaves pública e privada.
+
+Para isso, deve-se abrir o terminal na sua máquina e executar os seguintes comandos:
+\begin{verbatim}
+ ssh-keygen -t rsa
+\end{verbatim}
+
+Esse comando gera as chaves pública (id_rsa.pub) e privada (id_rsa) e salva-as na pasta ~/.ssh
+
+O comando vai pedir um nome de arquivo e uma senha/confirmação de senha. Deixe todos em branco.
+\begin{verbatim}
+
+ ssh-copy-id cbn3
+\end{verbatim}
+
+O programa pedirá a senha para logar na máquina cbn3. Neste caso, é o mesmo login e senha da rede do IC.
+
+Esse comando copia a chave publica para o arquivo authorized_keys na pasta .ssh.
+
+Com isso, o acesso por SSH está configurado. Para logar na máquina cbn3 sem senha, basta executar no terminal:
+
+\begin{verbatim}
+  ssh cbn3
+\end{verbatim}
+
+\section{Configurando o PostgreSQL}
+
+PostgreSQL é o banco de dados utilizado pela aplicação.
+
+Uma vez instalado o PostgreSQL 9.5, um cluster novo pode ser criado com os seguintes comandos.
+\begin{verbatim}
+ pg_dropcluster --stop 9.5 main
+
+ pg_createcluster 9.5 main -u [user_name]
+\end{verbatim}
+
+Um novo usuário, chamado postgres, será criado e configurado como administrador do banco de dados. Para acessá-lo, deve-se executar:
+\begin{verbatim}
+ su -s /bin/bash postgres
+
+ senha: postgres
+\end{verbatim}
+Como usuário postgres, pode-se acessar o banco de dados com o comando:
+\begin{verbatim}
+ psql -l 
+\end{verbatim}
+
+\section{Configurando o Tomcat}
+
+Apache Tomcat é o servidor web a ser usado para o projeto.
+
+A instalação do servidor cria um usuário $tomcat7$, para execução dos servidores, e um grupo $tomcat7$, para que usuários possam instanciar aplicações web.
+
+Para se configurar o servidor:
+
+Faça o download do PostgreSQL JDBC, em https://jdbc.postgresql.org/download.html, e adicione o conteudo à pasta $CATALINA_BASE/lib$.
+
+Abra o arquivo $CATALINA_BASE/conf/context.xml$ e copie a seguinte linha ao bloco Context:
+\begin{verbatim}
+  <ResourceLink type="javax.sql.DataSource" name="jdbc/TPCW" global="jdbc/TPCWPool"/>
+
+\end{verbatim}
+
+
+Abra o arquivo $CATALINA_BASE/conf/server.xml$ e adicione os seguintes linhas ao bloco GlobalNamingResources:
+
+\begin{verbatim}
+     <Resource type="javax.sql.DataSource"
+              name="jdbc/TPCWPool"
+              factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+              driverClassName="org.postgresql.Driver"
+              url="jdbc:postgresql://localhost:5432/tpcw"
+              username="<user_name>"
+              password="<user_password>"
+              initialSize="10"
+              maxActive="200"
+              maxIdle="100"
+              minIdle="10" />
+\end{verbatim}
+   
+
+Reinicie o Tomcat com o seguinte comando:
+\begin{verbatim}
+  # invoke-rc.d tomcat7 restart   
+\end{verbatim}
+
+
+\section{Configurando o TPC-W}
+
+Para se ter permissão para criar aplicações na pasta $CATALINA_BASE/webapps$, onde estão as configurações do Tomcat, deve-se adicionar o usuário ao grupo $tomcat7$. Utilize o seguinte comando.
+
+\begin{verbatim}
+  # adduser [usuário_comum] tomcat7
+\end{verbatim}
+
+Faça login novamente para que o novo grupo seja carregado.
+
+
+
+\end{document}
+
